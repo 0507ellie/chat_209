@@ -14,6 +14,29 @@
 #define YELLOW  "\033[33m"
 #define CYAN    "\033[36m"
 
+/* User name colors — cycled by hashing the username */
+static const char *user_colors[] = {
+    "\033[32m", /* green   */
+    "\033[33m", /* yellow  */
+    "\033[34m", /* blue    */
+    "\033[35m", /* magenta */
+    "\033[36m", /* cyan    */
+    "\033[91m", /* bright red    */
+    "\033[92m", /* bright green  */
+    "\033[93m", /* bright yellow */
+    "\033[94m", /* bright blue   */
+    "\033[95m", /* bright magenta*/
+};
+#define NUM_USER_COLORS 10
+
+static const char *color_for(const char *username)
+{
+  unsigned int hash = 0;
+  for (const char *p = username; *p; p++)
+    hash = hash * 31 + (unsigned char)*p;
+  return user_colors[hash % NUM_USER_COLORS];
+}
+
 /*
   Null-terminate a string with a trailing newline.
 */
@@ -69,20 +92,23 @@ void display_message(const Message *m, const char *my_username)
 
   case MSG_CHAT_RECV:
     print_timestamp();
-    printf("[#%s] " BOLD "%s" RESET ": %s\n", msg.target, msg.sender, msg.body);
+    printf("[#%s] %s" BOLD "%s" RESET ": %s\n",
+           msg.target, color_for(msg.sender), msg.sender, msg.body);
     break;
 
   case MSG_PRIVATE_RECV:
     print_timestamp();
     if (strcmp(msg.sender, my_username) == 0)
-      printf(CYAN "[DM to %s] %s\n" RESET, msg.target, msg.body);
+      printf("%s[DM to %s]" RESET " %s\n", color_for(msg.target), msg.target, msg.body);
     else
-      printf(CYAN "[DM from %s] %s\n" RESET, msg.sender, msg.body);
+      printf("%s[DM from %s]" RESET " %s\n", color_for(msg.sender), msg.sender, msg.body);
     break;
 
   case MSG_JOINED:
     print_divider();
     printf(DIM "  --> %s joined #%s\n" RESET, msg.sender, msg.target);
+    if (strcmp(msg.sender, my_username) == 0)
+      printf(GREEN "  now chatting in #%s\n" RESET, msg.target);
     print_divider();
     break;
 

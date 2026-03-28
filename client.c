@@ -101,6 +101,8 @@ int main(int argc, char *argv[])
     // handle user input (user typed something) accordingly; see display.c for valid input
     if (fds[0].revents & POLLIN)
     {
+      printf("> ");
+      fflush(stdout);
       char line[MAX_BODY];
       if (!fgets(line, sizeof(line), stdin))
       {
